@@ -5,12 +5,14 @@ var env = typeof process !== 'undefined' && process.env.NODE_ENV;
 var isDevelopment = !env || env === 'dev' || env === 'development';
 var showModuleComplains = typeof process !== 'undefined' && Boolean(process.env.SHOW_MODULE_COMPLAINS);
 var showNestedComplains = typeof process !== 'undefined' && Boolean(process.env.SHOW_NESTED_COMPLAINS);
+var complainLater = typeof process !== 'undefined' && Boolean(process.env.COMPLAIN_LATER);
 var logger = typeof console !== 'undefined' && console.warn && console;
 var cwd = typeof process !== 'undefined' && process.cwd() + '/' || '';
 var linebreak = typeof process !== 'undefined' && 'win32' === process.platform ? '\r\n' : '\n';
 var slice = [].slice;
 var ignoredLocation = "[ignore]";
 var hits = {};
+var all = [];
 
 complain = isDevelopment ? complain : noop;
 complain.method = isDevelopment ? method : noop;
@@ -21,6 +23,9 @@ complain.silence = false;
 complain.color = complain.stream && complain.stream.isTTY;
 complain.colors = { warning:'\x1b[31;1m', notice:'\x1b[33;1m', message:false, location:'\u001b[90m' };
 complain.getModuleName = getModuleName;
+
+complain.getAll = getAll;
+complain.clearAll = clearAll;
 
 /* istanbul ignore next */
 if (typeof module !== 'undefined' && module.exports) {
@@ -65,7 +70,7 @@ function complain() {
   
   var moduleName = complain.getModuleName(location);
 
-  if (moduleName && !showModuleComplains) {
+  if (moduleName && !showModuleComplains && !complainLater) {
     if (!hits[moduleName]) {
       var output = format("NOTICE", complain.colors.notice);
       output += linebreak + format('The module ['+moduleName+'] is using deprecated features.', complain.colors.message);
@@ -89,11 +94,23 @@ function complain() {
     output += linebreak + format(args[i], complain.colors.message);
   }
 
+  var shortLocation = location.replace(cwd, '');
   if(options.location !== false && location) {
-    output += linebreak + format('  at '+location.replace(cwd, ''), complain.colors.location);
+    output += linebreak + format('  at '+shortLocation, complain.colors.location);
   }
 
-  complain.log(linebreak + output + linebreak);
+  if (complainLater) {
+    all.push({
+      location: shortLocation,
+      moduleName,
+      level,
+      headingColor,
+      heading,
+      args
+    });
+  } else {
+    complain.log(linebreak + output + linebreak);
+  }
 };
 
 function method(object, methodName) {
@@ -122,6 +139,14 @@ function log(message, color) {
   } else if(logger) {
     logger.warn(formatted);
   }
+}
+
+function getAll() {
+  return all;
+}
+
+function clearAll() {
+  all = [];
 }
 
 function format(message, color) {
