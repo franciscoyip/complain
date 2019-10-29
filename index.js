@@ -8,7 +8,6 @@ var showNestedComplains = typeof process !== 'undefined' && Boolean(process.env.
 var logger = typeof console !== 'undefined' && console.warn && console;
 var cwd = typeof process !== 'undefined' && process.cwd() + '/' || '';
 var linebreak = typeof process !== 'undefined' && 'win32' === process.platform ? '\r\n' : '\n';
-var newline = /(\r\n|\r|\n)/g;
 var slice = [].slice;
 var ignoredLocation = "[ignore]";
 var hits = {};
