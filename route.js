@@ -14,6 +14,18 @@ const ESC_MAP = {
       return ESC_MAP[c];
     });
   };
+
+  var parserRules = [
+    { pattern: /(https?:\/\/[^\s]+)/g, replacement: '<a href="$1">$1</a>' },
+  ];
+
+  function parseMessage(_str) {
+    let str = escapeHTML(_str)
+    parserRules.forEach(function(rule) {
+      str = str.replace(rule.pattern, rule.replacement)
+    });
+    return str;
+  }
   
   const separator = '-------------------------------------------------------------------------------------------------------------------';
   
@@ -97,7 +109,7 @@ const ESC_MAP = {
               if (c.headingColor) {
                   const m = c.headingColor.match(/\[([0-9]+);1m/);
                   if(m) klass = mapClass[m[1]];
-                  html += `   <span class='${klass}'>${c.heading}</span> <a href="vscode://file/${cwd}/${location}/${c.fileRowCol}" class="file">${c.fileRowCol}</a>${' '.repeat(folder.maxL - c.fileRowCol.length)} ${escapeHTML(c.args[0])}\n`
+                  html += `   <span class='${klass}'>${c.heading}</span> <a href="vscode://file/${cwd}/${location}/${c.fileRowCol}" class="file">${c.fileRowCol}</a>${' '.repeat(folder.maxL - c.fileRowCol.length)} ${parseMessage(c.args[0])}\n`
               }
           }
       }
