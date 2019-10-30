@@ -1,4 +1,5 @@
 const complain = require('complain');
+var complainLater = typeof process !== 'undefined' && Boolean(process.env.COMPLAIN_LATER);
 
 const ESC_MAP = {
     '&': '&amp;',
@@ -79,19 +80,19 @@ const ESC_MAP = {
       const cwd = process.cwd();
   
       res.setHeader('content-type', 'text/html');
-      let html = `
-      <style>
-          body {background-color: #000; color: #aaa}
-          .red {color: red;}
-          .white {color: #fff;}
-          .location {
-              color: #fff;
-              margin-bottom: 2px;
-              display: inline-block;
-          }
-          .file {color: #777;}
-  
-       </style>`;
+      const styles = `
+        <style>
+            body {background-color: #000; color: #aaa}
+            .red {color: red;}
+            .white {color: #fff;}
+            .location {
+                color: #fff;
+                margin-bottom: 2px;
+                display: inline-block;
+            }
+            .file {color: #777;}
+        </style>`;
+      let html = '';
       let prevModule; 
       for (location in componentToMessages) {
           const folder = componentToMessages[location];
@@ -113,7 +114,15 @@ const ESC_MAP = {
               }
           }
       }
+
+      if (data.length === 0) {
+        if (complainLater) {
+            html += `<b class="white">No complains. GOOD job!</b>\n`;
+        } else {
+            html += `<b class="red">No complains. COMPLAIN_LATER is not set.</b>\nIn order to get a complete picture, you may want to run your app with:\n\nSHOW_MODULE_COMPLAINS=1 SHOW_NESTED_COMPLAINS=1 COMPLAIN_LATER=1 node index.js</b>\n`;
+        }
+      }
   
-      res.send('<pre>' + html + '</pre>');
+      res.send(styles + '<pre>' + html + '</pre>');
   };
   
