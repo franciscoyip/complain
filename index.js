@@ -102,11 +102,11 @@ function complain() {
   if (complainLater) {
     all.push({
       location: shortLocation,
-      moduleName,
-      level,
-      headingColor,
-      heading,
-      args
+      moduleName: moduleName,
+      level: level,
+      headingColor: headingColor,
+      heading: heading,
+      args: args
     });
   } else {
     complain.log(linebreak + output + linebreak);
